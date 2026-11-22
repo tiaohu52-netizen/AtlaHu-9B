@@ -1,0 +1,80 @@
+{
+  "metric": "total fixed-token decode positions / total synchronized decode seconds",
+  "stock": {
+    "timed_positions": 384,
+    "decode_seconds": 202.26111691631377,
+    "decode_tokens_s": 1.898535941334099,
+    "median_prefill_s": 0.5765524068847299,
+    "mean_nll": 1.3496951018128869
+  },
+  "s10": {
+    "timed_positions": 384,
+    "decode_seconds": 24.824056886136532,
+    "decode_tokens_s": 15.468865615372165,
+    "median_prefill_s": 0.28869492653757334,
+    "mean_nll": 1.3237475528405411
+  },
+  "decode_speedup": 8.147786554149832,
+  "stock_model": "SenseNova-Loop-9B (BF16)",
+  "s10_model": "AtlaHu-9B (S10)",
+  "on_load_cuda_bytes": {
+    "child": 10698344960,
+    "parent": 18843711488
+  },
+  "inference_tensor_file_bytes": {
+    "stock": 18832334608,
+    "s10": 10648679526
+  },
+  "unique_sources": 4,
+  "repetitions_per_source": 6,
+  "paired_observations": 24,
+  "emitted_tokens": 0,
+  "prefill_speedup": 1.9970992001817953,
+  "nll_delta": -0.025947548972345746,
+  "per_source": [
+    {
+      "id": "8224642f3dc2588b800c47f2a23c9bda1e121d6c41bbd59f031a2d67bc4801b2_1_1",
+      "group": "Coding",
+      "repetitions": 6,
+      "speedup": 8.545349439337123,
+      "nll_delta": 0.06269484833492234,
+      "same_as_prior_checkpoint_replay": {
+        "parent": true,
+        "child": true
+      }
+    },
+    {
+      "id": "caf0a4ae2e8684138c9828656a030ef0b348e8b9b1172278f40cd584d32969be_1_1",
+      "group": "Logic",
+      "repetitions": 6,
+      "speedup": 8.160606647371367,
+      "nll_delta": -0.08228884011359705,
+      "same_as_prior_checkpoint_replay": {
+        "parent": true,
+        "child": true
+      }
+    },
+    {
+      "id": "a553dfb7072f5148daf730131c2ac24f21a4fa56e0ec4490e10ab7f4583dbf7b_5_1",
+      "group": "Math_CoT",
+      "repetitions": 6,
+      "speedup": 7.6257912591392705,
+      "nll_delta": -0.15512414124877982,
+      "same_as_prior_checkpoint_replay": {
+        "parent": true,
+        "child": true
+      }
+    },
+    {
+      "id": "math_l3_qa.parquet/e307c62e-fe13-4066-a08a-2474a519a019",
+      "group": "math_l3_qa",
+      "repetitions": 6,
+      "speedup": 8.298855925740789,
+      "nll_delta": 0.07092793713807166,
+      "same_as_prior_checkpoint_replay": {
+        "parent": true,
+        "child": true
+      }
+    }
+  ]
+}

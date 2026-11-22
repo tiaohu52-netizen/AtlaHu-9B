@@ -1,0 +1,237 @@
+{
+  "format": "atlas-loop-execution-v2",
+  "certificates": [
+    {
+      "accepted": true,
+      "recipe": {
+        "implementation": "finite_sinkhorn_2x2_fp32",
+        "iterations": 20,
+        "reference_sha256": "176998a2116ec5bffb8f319f7b4854b7afb5728fee0dd8846f4906c6a5b2ee5d",
+        "reference_symbol": "sinkhorn"
+      },
+      "evidence_sha256": "ffe571acd56a09b45e53a2a5b329721c543136783851e66a49df9aa9f92b00bd",
+      "anchor": {
+        "digest": "sha256:1b81e77a2055c10877c3f5ec81788301b7fefd0f96d95282956d56cadef885f7",
+        "patch_id": "sha256:9f08e5b310180dc2633e919ae3ebd54a0db15c8d1744449c1192003d73cb6f0e"
+      },
+      "provenance": {
+        "capability": [
+          8,
+          9
+        ],
+        "device": "NVIDIA GeForce RTX 4080 SUPER",
+        "manifest_sha256": "97eb7dc28a84f387379bebeaf3d7b5e03a60e16f3ac8608b2f2ecca902bb49cd",
+        "parent_digest": "sha256:a610af660b093709cfff4e254cdf59da059ef11960a64bea260095602b08e17c",
+        "provider_sha256": "26e11d3522aa730c0ba031340ce42632bc2834da8cc0b6804006bb207d979a5b",
+        "torch_version": "2.13.0+cu130",
+        "implementation_sha256": "67890df04752aa5e2e804792daed4a4517d21129612022a5119d0d7adde02e7d",
+        "triton_version": "3.7.1"
+      },
+      "loop_count": 2
+    },
+    {
+      "accepted": true,
+      "recipe": {
+        "implementation": "cached_gated_delta",
+        "mode": "packed",
+        "reference_symbol": "torch_recurrent_gated_delta_rule",
+        "reference_sha256": "60d1b140670aad5ef8a14d77ddc0461a6d252e139d18ddc8d2899fab7aae0728",
+        "owner_sha256": "aac2a1bcca88829afc6dbdf83f97155ebf64d800ee9d703af3802a9aebcfcd18"
+      },
+      "provenance": {
+        "device": "NVIDIA GeForce RTX 4080 SUPER",
+        "capability": [
+          8,
+          9
+        ],
+        "torch_version": "2.13.0+cu130",
+        "provider_sha256": "26e11d3522aa730c0ba031340ce42632bc2834da8cc0b6804006bb207d979a5b",
+        "manifest_sha256": "97eb7dc28a84f387379bebeaf3d7b5e03a60e16f3ac8608b2f2ecca902bb49cd",
+        "implementation_sha256": "9a5acd940cb5d02d1f8fdf9725a73427f2218181d602fad52bc034c5547d70e9",
+        "triton_version": "3.7.1"
+      },
+      "evidence_sha256": "3eb13d5467908f9925559c9647533d765a32e15e4f9926322bea8a9fac43648e"
+    },
+    {
+      "accepted": true,
+      "evidence_report": "../benchmarks/conv-calibration.json",
+      "evidence_sha256": "8fa27dc073dd0d2a02fc70569202b6620066e1200490f8e33157016ea0f90802",
+      "kind": "atlas.loop_efficiency/1",
+      "provenance": {
+        "calibration_max_output_error": 0.0,
+        "calibration_max_state_error": 0.0,
+        "capability": [
+          8,
+          9
+        ],
+        "device": "NVIDIA GeForce RTX 4080 SUPER",
+        "eager_paired_ci": [
+          1.012130602053491,
+          1.0157745584452997
+        ],
+        "eager_paired_speedup": 1.0139509432856504,
+        "implementation_sha256": "138000a70bee34a665b730c99f1e87b8dd3de1037602fa542d883f529d70ad45",
+        "provider_sha256": "26e11d3522aa730c0ba031340ce42632bc2834da8cc0b6804006bb207d979a5b",
+        "torch_version": "2.13.0+cu130",
+        "triton_version": "3.7.1"
+      },
+      "recipe": {
+        "implementation": "fused_conv_update",
+        "mode": "fused",
+        "owner_sha256": "aac2a1bcca88829afc6dbdf83f97155ebf64d800ee9d703af3802a9aebcfcd18",
+        "reference_sha256": "bac68342342b43d7180c8b365fc70dab6680361f3e89206f7c6d3921e44e9090",
+        "reference_symbol": "causal_conv1d_update"
+      }
+    },
+    {
+      "accepted": true,
+      "recipe": {
+        "arithmetic": [
+          "highest",
+          false,
+          true,
+          false
+        ],
+        "capture_warmups": 1,
+        "groups": [
+          "linear",
+          "residual"
+        ],
+        "implementation": "cuda_graph_decode",
+        "module_sources": {
+          "model.language_model.layers.0": "07a700417d4e0eaec79fb27d09a86a053928f62197d228ab4c64b903eb344d5a",
+          "model.language_model.layers.1": "07a700417d4e0eaec79fb27d09a86a053928f62197d228ab4c64b903eb344d5a",
+          "model.language_model.layers.10": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.11.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.11.mhc_attn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.11.mhc_ffn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.11.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.12": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.13": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.14": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.15.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.15.mhc_attn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.15.mhc_ffn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.15.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.16": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.17": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.18": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.19.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.19.mhc_attn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.19.mhc_ffn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.19.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.2": "07a700417d4e0eaec79fb27d09a86a053928f62197d228ab4c64b903eb344d5a",
+          "model.language_model.layers.20": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.21": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.22": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.23.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.23.mhc_attn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.23.mhc_ffn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.23.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.24": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.25": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.26": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.27.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.27.mhc_attn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.27.mhc_ffn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.27.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.28": "07a700417d4e0eaec79fb27d09a86a053928f62197d228ab4c64b903eb344d5a",
+          "model.language_model.layers.29": "07a700417d4e0eaec79fb27d09a86a053928f62197d228ab4c64b903eb344d5a",
+          "model.language_model.layers.3.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.3.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.30": "07a700417d4e0eaec79fb27d09a86a053928f62197d228ab4c64b903eb344d5a",
+          "model.language_model.layers.31.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.31.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.4.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.4.linear_attn": "bd25761e1031fff0f6b24115dff8175ee9c8fb585287a4026b73a12bb0b5d816",
+          "model.language_model.layers.4.mhc_attn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.4.mhc_ffn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.4.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.5": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.6": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.7.input_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.7.mhc_attn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.7.mhc_ffn": "1b954378c8cb2c42370f89633d6a590842e396f427013c8f7efa24d97ee6b9e3",
+          "model.language_model.layers.7.post_attention_layernorm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e",
+          "model.language_model.layers.8": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.layers.9": "26945d57223ea21446dce129e0f2731dda51ece89d5cb7f6d557cc25f70c3a0a",
+          "model.language_model.norm": "350041feaa40063352594579e212741fdff004594990c36162458d778dae1a9e"
+        },
+        "program_id": "sha256:15660574359f551c15f39cdd793aa96a3a1a5d8ffe8e1b2969baefc369ffff06",
+        "regions": [
+          "model.language_model.layers.0",
+          "model.language_model.layers.1",
+          "model.language_model.layers.10",
+          "model.language_model.layers.11.input_layernorm",
+          "model.language_model.layers.11.mhc_attn",
+          "model.language_model.layers.11.mhc_ffn",
+          "model.language_model.layers.11.post_attention_layernorm",
+          "model.language_model.layers.12",
+          "model.language_model.layers.13",
+          "model.language_model.layers.14",
+          "model.language_model.layers.15.input_layernorm",
+          "model.language_model.layers.15.mhc_attn",
+          "model.language_model.layers.15.mhc_ffn",
+          "model.language_model.layers.15.post_attention_layernorm",
+          "model.language_model.layers.16",
+          "model.language_model.layers.17",
+          "model.language_model.layers.18",
+          "model.language_model.layers.19.input_layernorm",
+          "model.language_model.layers.19.mhc_attn",
+          "model.language_model.layers.19.mhc_ffn",
+          "model.language_model.layers.19.post_attention_layernorm",
+          "model.language_model.layers.2",
+          "model.language_model.layers.20",
+          "model.language_model.layers.21",
+          "model.language_model.layers.22",
+          "model.language_model.layers.23.input_layernorm",
+          "model.language_model.layers.23.mhc_attn",
+          "model.language_model.layers.23.mhc_ffn",
+          "model.language_model.layers.23.post_attention_layernorm",
+          "model.language_model.layers.24",
+          "model.language_model.layers.25",
+          "model.language_model.layers.26",
+          "model.language_model.layers.27.input_layernorm",
+          "model.language_model.layers.27.mhc_attn",
+          "model.language_model.layers.27.mhc_ffn",
+          "model.language_model.layers.27.post_attention_layernorm",
+          "model.language_model.layers.28",
+          "model.language_model.layers.29",
+          "model.language_model.layers.3.input_layernorm",
+          "model.language_model.layers.3.post_attention_layernorm",
+          "model.language_model.layers.30",
+          "model.language_model.layers.31.input_layernorm",
+          "model.language_model.layers.31.post_attention_layernorm",
+          "model.language_model.layers.4.input_layernorm",
+          "model.language_model.layers.4.linear_attn",
+          "model.language_model.layers.4.mhc_attn",
+          "model.language_model.layers.4.mhc_ffn",
+          "model.language_model.layers.4.post_attention_layernorm",
+          "model.language_model.layers.5",
+          "model.language_model.layers.6",
+          "model.language_model.layers.7.input_layernorm",
+          "model.language_model.layers.7.mhc_attn",
+          "model.language_model.layers.7.mhc_ffn",
+          "model.language_model.layers.7.post_attention_layernorm",
+          "model.language_model.layers.8",
+          "model.language_model.layers.9",
+          "model.language_model.norm"
+        ]
+      },
+      "provenance": {
+        "device": "NVIDIA GeForce RTX 4080 SUPER",
+        "torch_version": "2.13.0+cu130",
+        "capability": [
+          8,
+          9
+        ],
+        "implementation_sha256": "3a76b00a70dbad4a26b960587a6235e91c336edb8abe9908a3dcf99476ce4413",
+        "provider_sha256": "26e11d3522aa730c0ba031340ce42632bc2834da8cc0b6804006bb207d979a5b"
+      },
+      "evidence_sha256": "89180514f90874d0e0af646057028815fa900923d099a625c5ccdf1e80bdb78c",
+      "reference_sha256": "b9fd37dbf2be825689058933bd372352c313aa9f967315b77de80dd418cae084"
+    }
+  ],
+  "weight_digest": "sha256:2163a080a57e293b1c28d098c61469db5989fc46ffe86a6c8627aa2bf773f160",
+  "fingerprint_chunk_bytes": 33554432
+}

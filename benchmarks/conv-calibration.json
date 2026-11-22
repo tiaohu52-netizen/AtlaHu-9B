@@ -1,0 +1,23 @@
+{
+  "implementation": "fused_conv_update",
+  "accepted": true,
+  "provenance": {
+    "calibration_max_output_error": 0.0,
+    "calibration_max_state_error": 0.0,
+    "capability": [
+      8,
+      9
+    ],
+    "device": "NVIDIA GeForce RTX 4080 SUPER",
+    "eager_paired_ci": [
+      1.012130602053491,
+      1.0157745584452997
+    ],
+    "eager_paired_speedup": 1.0139509432856504,
+    "implementation_sha256": "138000a70bee34a665b730c99f1e87b8dd3de1037602fa542d883f529d70ad45",
+    "provider_sha256": "26e11d3522aa730c0ba031340ce42632bc2834da8cc0b6804006bb207d979a5b",
+    "torch_version": "2.13.0+cu130",
+    "triton_version": "3.7.1"
+  },
+  "source_report_sha256": "46ace0cc7fe4c92257c1578847e36b9e5fe4f6d55ce62468bca6cdd66ec3147e"
+}

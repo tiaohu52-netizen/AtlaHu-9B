@@ -1,293 +1,56 @@
-# SenseNova-Loop-9B
+# AtlaHu-9B
 
-<p align="center">
-  <strong>English</strong> | <a href="./README_CN.md">简体中文</a>
-</p>
+AtlaHu 是我基于商汤 SenseNova-Loop-9B 制作的量化与推理优化版本。我希望在单张消费级显卡上保留原模型的双遍循环，同时少占显存、缩短逐 token 解码的等待时间。我使用自研工具 Atlas-RSI 定位耗时和占用显存的模块，编辑已有参数、校准量化精度，并优化循环的执行方式。整个过程沿用原模型权重，没有重新预训练、指令微调或强化学习后训练。[商汤原模型](https://huggingface.co/sensenova/SenseNova-Loop-9B) · [上游项目](https://github.com/OpenSenseNova/SenseNova-Loop)
 
-<p align="center">
-  <a href="https://huggingface.co/sensenova/SenseNova-Loop-9B"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-SenseNova--Loop--9B-yellow" alt="SenseNova-Loop-9B on Hugging Face"></a>
-  <a href="https://huggingface.co/sensenova/SenseNova-Loop-9B-Preview"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-SenseNova--Loop--9B--Preview-yellow" alt="SenseNova-Loop-9B-Preview on Hugging Face"></a>
-  <a href="https://modelscope.cn/models/sensenova/SenseNova-Loop-9B"><img src="https://img.shields.io/badge/ModelScope-SenseNova--Loop--9B-624AFF?logo=modelscope&amp;logoColor=white" alt="SenseNova-Loop-9B on ModelScope"></a>
-  <a href="https://modelscope.cn/models/SenseNova/SenseNova-Loop-9B-Preview"><img src="https://img.shields.io/badge/ModelScope-SenseNova--Loop--9B--Preview-624AFF?logo=modelscope&amp;logoColor=white" alt="SenseNova-Loop-9B-Preview on ModelScope"></a>
-  <a href="https://github.com/OpenSenseNova/SenseNova-Loop"><img src="https://img.shields.io/badge/GitHub-SenseNova--Loop-181717?logo=github&amp;logoColor=white" alt="GitHub repository"></a>
-  <a href="https://github.com/OpenSenseNova/SenseNova-Loop/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License"></a>
-  <a href="https://huggingface.co/sensenova/SenseNova-Loop-9B-Preview/blob/main/config.json"><img src="https://img.shields.io/badge/Architecture-sensenova__loop-2459B8" alt="sensenova_loop architecture"></a>
-  <a href="https://discord.com/invite/BuTXPHmQub"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&amp;logoColor=white" alt="Join Discord"></a>
-</p>
+在同一张 **RTX 4080 SUPER** 上，与官方 BF16 权重通过 Transformers 参考实现运行的结果相比，AtlaHu 的双遍缓存解码吞吐从 **1.90 提至 15.47 token/s（8.15 倍）**，模型加载后的显存分配从 **18.84 降至 10.70 GB（减少 43.23%）**。四个固定前缀的平均负对数似然（NLL）从 1.3497 降至 1.3237。[逐轮测量记录](benchmarks/paired.json) · [汇总](benchmarks/summary.json)
 
-## 🌐 Architecture
+## 同卡对照
 
-![这张图是SenseNova-Loop-9B的整体架构示意图，整体以淡紫色调呈现。图的上部展示模型的宏观层级流转：先经过前置循环的A层，随后进入标注为Looped block的循环模块，该模块包含1-st Looped Pass等多轮循环传递，每轮均包含多个TBK单元，对应模型中部的B层，之后进入后置循环的最后C层，最终接入LM Head得到输出。图的下部为mHC模块的内部细节，展示了特征通过Transform分支的Attention/FFN计算、结合双随机矩阵的残差混合多流操作，完成特征的迭代更新，直观呈现该模型的核心特殊架构设计。](assets/hero.png)
-
-## 📣 News
-
-**🔥 2026-11-18:** Added download links for the [AWQ](https://huggingface.co/sensenova/SenseNova-Loop-9B-AWQ) and [GGUF](https://huggingface.co/sensenova/SenseNova-Loop-9B-GGUF) weights.
-
-**🔥 2026-11-17:** We release SenseNova-Loop-9B, with model weights and code available to the community.
-
-**🔥 2026-10-31:** We release SenseNova-Loop-9B-Preview, with model weights and code available to the community.
-
-## 🚀 SenseNova-Loop-9B: Deeper Computation with Fewer Parameters
-
-We officially release SenseNova-Loop-9B. Building on the Preview's exploration of parameter efficiency, the model reuses layer weights through a looped architecture and combines them with manifold-constrained hyper-connections (mHC) to expand computational depth within a compact parameter budget. It is designed for complex reasoning, coding, tool use, and multimodal tasks.
-
-Since the Preview release, we have received community interest and feedback on model use, inference deployment, and ecosystem integration. The official release retains the looped architecture and two-stream mHC, further improving performance on agentic, coding, and data analysis tasks while continuing to explore the capabilities of looped computation.
-
-SenseNova-Loop-9B has approximately 9B parameters. By repeatedly executing shared middle layers, it extends 32 physical decoder layers into 56 layer executions. The model accepts text and images and generates text, supporting long-context understanding and multi-step tasks. In agentic and data analysis evaluations, the model is competitive with Qwen3.8-27B: it scores 41.36 versus 44.60 on NL2Repo and 65.31 versus 65.01 on AIDABench.
-
-### Model Highlights
-
-- **Shared looped block:** 24 decoder layers are executed twice in sequence, producing 56 layer computations from 32 distinct layers per forward pass.
-- **Two-stream mHC:** learned mappings route and combine information between two residual streams within the looped block.
-- **Hybrid attention:** the decoder interleaves linear and full attention in a repeating four-layer pattern.
-- **Long-context multimodal training:** the training recipe includes text, images, code, and tool-use trajectories, with the context length extended to 512K tokens.
-- **Low-memory deployment:** With 4-bit weights and an 8-bit KV cache, multimodal inference at a 256K context length requires approximately 15 GiB of GPU memory.
-- **Official quantized release:** An official AWQ 4-bit version is available on launch day for easier deployment.
-
-## 🎬 Showcase
-
-### 3D
-
-![Cloudside Market: rotating 3D scene](assets/showcase_ref_3d.gif)
-
-### SVG + Web
-
-![ORBIT: an interactive space exploration website](assets/showcase_ref_orbit.gif)
-
-### Poster
-
-![Distortion FM: an animated music festival poster](assets/showcase_ref_poster.gif)
-
-### Web
-
-![TYPE RELAY: an interactive typography exhibition](assets/showcase_ref_web.gif)
-
-### Design
-
-![Beyond the Coastline: a photo editorial website](assets/showcase_ref_coast.gif)
-
-## 📊 Model Performance: From Preview to Release
-
-We evaluate SenseNova-Loop-9B on agentic, coding, and data analysis tasks, comparing the release with the Preview and other models.
-
-![Benchmark comparison of SenseNova-Loop-9B, the Preview, and other models](assets/release_benchmark_iuua.png)
-
-The release outperforms the Preview on all seven benchmarks shown. AutomationBench rises from 14.33 to 36.67, Terminal-Bench 2.1 from 40.45 to 59.55, and GAIA from 37.86 to 69.90.
-
-Compared with Qwen3.8-27B, the release matches its 36.67 on AutomationBench and scores 65.31 versus 65.01 on AIDABench. On NL2Repo, it scores 41.36 versus 44.60. Its BIRD score of 72.34 is 0.96 percentage points above the Preview's 71.38.
-
-## 🧠 Model Architecture
-
-SenseNova-Loop-9B is built on a 32-layer multimodal decoder combining shared-weight looped computation, hybrid attention, and two-stream manifold-constrained hyper-connections (mHC). It extends computation depth by reusing middle-layer parameters, accepts text and images, generates text, and supports a context length of up to 512K tokens.
-
-### Model Specifications
-
-| Property | SenseNova-Loop-9B |
-|-|-|
-| Architecture | Autoregressive multimodal decoder; looped block with two-stream mHC |
-| Parameter scale | Approximately 9B total parameters; approximately 14.6B inference-equivalent parameters |
-| Input / output | Text and images / text |
-| Distinct decoder layers | 32 |
-| Looped layer range / passes | [4, 28) / 2, with shared weights |
-| Decoder layer executions | 56 per forward pass |
-| mHC residual streams | 2 |
-| Context length | 512K tokens |
-| Weight precision | BF16 backbone; FP32 mHC routing parameters |
-
-### Looped Decoder
-
-Inputs first pass through layers 0–3, then through the same block of layers 4–27 twice, and finally through layers 28–31 and the output head. If B denotes the looped block and h its input, the looped computation can be written as B(B(h)).
-
-During inference, each forward pass performs 56 decoder-layer computations while storing only 32 sets of decoder-layer weights. The looped block shares the same weights across both passes, with the output of the first pass serving as input to the second.
-
-### Hybrid Attention
-
-The decoder interleaves linear attention and full attention. Each group of four layers contains three linear-attention layers followed by one full-attention layer. The loop boundaries align with complete four-layer groups, so both passes preserve the same attention pattern.
-
-### Two-Stream mHC
-
-Within the looped block, mHC uses two residual streams to carry information around decoder-layer computations. Learned mappings determine how each layer reads from the streams, mixes information between them, and writes its output back to the residual state. The stream-mixing map is constrained with Sinkhorn normalization, using 20 iterations in the model configuration.
-
-The two streams can be viewed as two sets of hidden states carried in parallel. A looped layer reads from the streams, applies attention or feed-forward computation, and writes its output back. Repeated row and column normalization constrains how information is mixed between the streams. These 20 normalization iterations are internal to mHC and are separate from the two passes through the looped block.
-
-The loop range, number of passes, and mHC routing parameters together define the checkpoint's execution configuration. A compatible inference implementation must load these parameters and preserve the same computation order.
-
-| Configuration | Value |
-|-|-|
-| Distinct decoder layers / executions | 32 / 56 |
-| Looped layer range / passes | [4, 28) / 2 |
-| Hidden dimension | 4,096 |
-| Feed-forward dimension | 12,288 |
-| Vocabulary size | 248,320 |
-| Full-attention heads / KV heads | 16 / 4 |
-| mHC residual streams / Sinkhorn iterations | 2 / 20 |
-
-## 🔬 Loop Scaling: Exploring the Benefits of Looped Computation
-
-![Loop Scaling: matched training and inference loops across four benchmarks](assets/loop_scaling_zh_latest.png)
-
-Looped Transformers show promising performance scaling, offering another way to expand model capability through repeated computation. Using the original 9B model with a standard single forward pass (Loop 1) as the baseline, we vary the number of loops while holding the training data and other settings constant. Overall performance improves across the four tasks, with the best results at three or four loops. AIDABench-QA and Workbuddy-office peak at three loops, improving by 6.42% and 16.93% relative to the baseline; LiveCodeBench V6 and AIDABench data visualization peak at four loops, improving by 8.10% and 8.55%.
-
-To balance inference efficiency, both the Preview and the release use two loops by default. Deeper loops nevertheless provide further gains: moving from two to four loops improves LiveCodeBench V6 by 1.04 percentage points and AIDABench data visualization by 1.35 percentage points. These experiments cover one to four loops, leaving the potential of deeper looping open for further study.
-
-Different tasks respond differently to loop depth. We will continue exploring deeper computation and Dynamic Loop architectures that adapt the number of loops to each input, allocating computation according to task complexity.
-
-## 💾 Low-Memory Deployment
-
-The shared looped architecture uses approximately 9B distinct parameters. With 4-bit weight quantization, the model weights occupy approximately 4.9 GB. Using an 8-bit or 4-bit KV cache can further reduce memory requirements for long-context inference. The estimated minimum GPU memory requirements for deployment are:
-
-| Context length | 8-bit KV cache | 4-bit KV cache |
+| 指标 | 官方 BF16 | AtlaHu-9B |
 | --- | ---: | ---: |
-| 64K | ~10 GiB | ~9 GiB |
-| 128K | ~12 GiB | ~10 GiB |
-| 256K | ~15 GiB | ~12 GiB |
+| 双遍缓存解码吞吐 | 1.899 token/s | 15.469 token/s |
+| 输入预填中位耗时 | 576.6 ms | 288.7 ms |
+| 模型加载后的 CUDA 分配增量 | 18.844 GB | 10.698 GB |
+| 主推理张量文件体积 | 18.832 GB | 10.649 GB |
+| 固定参考 token 平均 NLL，越低越好 | 1.349695 | 1.323748 |
 
-## Get Started
+批量为 1。四个评测前缀分别有 95、88、68、74 个 token，每个前缀测 6 轮，两版交替先运行。每轮独立预填并预热 3 步，再计时 16 个固定参考 token。两版各测 384 个解码位置，总耗时分别为 202.261 秒和 24.824 秒。显存指模型加载时的分配增量，GB 按十进制计算。官方侧使用上游 BF16 权重与模型代码，环境中未安装可选的 FLA 和 causal-conv1d，使用了 Transformers 的回退算子。8.15 倍是这两套配置在本机的实测比值。[环境与文件口径](benchmarks/environment.json)
 
-### Model Weights
+质量评测使用 80 个不同的参考 token。AtlaHu 相对官方的平均 NLL 变化为 **−0.02595 nat/token**。分来源看，代码为 +0.0627，逻辑为 −0.0823，数学推理为 −0.1551，数学问答为 +0.0709。这组数据支持“小样本平均 NLL 略有改善”，还不足以推断所有任务的质量或长文本稳定性。[分来源数据](benchmarks/summary.json)
 
-| Weights | Download | Files |
-| --- | --- | --- |
-| BF16 | [Hugging Face](https://huggingface.co/sensenova/SenseNova-Loop-9B) · [ModelScope](https://modelscope.cn/models/sensenova/SenseNova-Loop-9B) | Release weights in Safetensors format |
-| AWQ | [Hugging Face](https://huggingface.co/sensenova/SenseNova-Loop-9B-AWQ) | 4-bit AWQ weights and matching MTP draft |
-| GGUF | [Hugging Face](https://huggingface.co/sensenova/SenseNova-Loop-9B-GGUF) | BF16, Q8_0, Q5_K_M, and Q4_K_M |
+## Atlas-RSI 改了哪些地方
 
-### Text Generation with Transformers
+- **循环和参数。** 保留 32 个物理文本层，中间 24 层各运行两遍，一次前向共访问 56 层。调整了部分前馈网络通道，并根据固定参考 token 的评测选择两遍循环之间的三个 BF16 残差交接系数。
+- **权重和缓存。** 249 个线性权重矩阵使用 INT8 与对应的缩放系数，输入嵌入按 32 个元素分组量化为 INT8。全注意力的 KV 缓存也采用 INT8。
+- **线性注意力。** Atlas-RSI 定位到 24 个物理模块中 120 个矩阵的缩放系数存在大量重复。50,528,256 个 FP32 系数实际只有 990 种取值。用 10 位索引保存原值，比上一个紧凑版本再省 138,948,528 字节。只有这一步是无损重编码，所有系数都能精确还原。
+- **执行方式。** 加载器挂载与该检查点配套的融合投影、递归状态更新和 CUDA Graph，减少逐 token 解码的调度开销。
 
-Use Transformers to load the model from a Hugging Face repository or a local model directory. The examples below cover single-GPU text generation and serving with inference engines.
+## 下载和加载
 
-#### Requirements
-
-The checked Preview environment uses Transformers 5.18.0, PyTorch 2.11.0, and CUDA 13.0. The model directory must include the configuration, tokenizer, chat template, custom model code, and all weight shards.
-
-First install a CUDA-compatible build of [PyTorch](https://pytorch.org/get-started/locally/), then install the remaining dependencies:
+Git 仓库包含分词器、配置、模型代码和推理加载器。四个 safetensors 文件随 Release 发布，合计 11,135,262,406 字节，其中独立的 MTP 权重为 486,582,880 字节。下载脚本逐卷核对 SHA-256，重组后再核对整文件。重复运行可从已校验的分卷继续。[权重下载页](https://github.com/tiaohu52-netizen/AtlaHu-9B/releases/tag/atlahu-v1.0.0) · [文件清单与校验值](weights.json)
 
 ```bash
-python -m pip install "transformers==5.18.0" accelerate safetensors
+git clone https://github.com/tiaohu52-netizen/AtlaHu-9B.git
+cd AtlaHu-9B
+python download_weights.py
 ```
 
-Set model_id to the release model directory or repository ID, then run:
+实测环境为 Linux、Python 3.12、PyTorch 2.13.0+cu130、Transformers 5.19.0、Triton 3.7.1 和 safetensors 0.8.0。随附的优化配置会核对 GPU 计算能力与算子版本，已验证的计算能力为 8.9。请在仓库根目录用配套加载器打开权重。下面的示例以固定输入执行一次前向并打印输出张量形状。
 
-```python
+```bash
+PYTHONPATH=inference python - <<'PY'
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer
+from checkpoint import open_compact
 
-model_id = "/path/to/SenseNova-Loop-9B"
-device = "cuda:0"
-
-tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    trust_remote_code=True,
-    dtype=torch.bfloat16,
-    device_map={"": device},
-).eval()
-
-messages = [{"role": "user", "content": "What is 13 times 7?"}]
-prompt = tokenizer.apply_chat_template(
-    messages,
-    tokenize=False,
-    add_generation_prompt=True,
-    enable_thinking=True,
-)
-inputs = tokenizer(prompt, return_tensors="pt").to(device)
-with torch.inference_mode():
-    outputs = model.generate(
-        **inputs,
-        max_new_tokens=512,
-        do_sample=False,
-        use_cache=True,
-    )
-response = tokenizer.decode(
-    outputs[0, inputs.input_ids.shape[1]:],
-    skip_special_tokens=True,
-)
-print(response)
+tokenizer = AutoTokenizer.from_pretrained("AtlaHu", local_files_only=True)
+inputs = tokenizer("你好", return_tensors="pt").to("cuda")
+with open_compact("AtlaHu") as loaded, torch.inference_mode():
+    result = loaded.model(**inputs, use_cache=True, logits_to_keep=1)
+    print(tuple(result.logits.shape))
+PY
 ```
 
-The example enables thinking mode, uses greedy decoding, and generates up to 512 new tokens. Set enable_thinking to False to disable thinking, or change device to select a GPU. trust_remote_code=True loads the custom SenseNova Loop model implementation.
+## 来源与许可
 
-### Deployment
-
-The following commands are adapted from the Preview deployment examples. Replace the model path with the release checkpoint directory; the release engine versions and configurations will be updated with the model.
-
-#### LightLLM
-
-Four-GPU deployment example:
-
-```bash
-docker pull ghcr.io/modeltc/lightllm:main
-
-docker run --rm --gpus all --ipc=host -p 8000:8000 \
-  -v /path/to/SenseNova-Loop-9B:/model \
-  -e LOADWORKER=4 -e LIGHTLLM_TRITON_AUTOTUNE_LEVEL=1 \
-  ghcr.io/modeltc/lightllm:main \
-  python -m lightllm.server.api_server \
-    --model_dir /model --model_name SenseNova-Loop-9B \
-    --tp 4 --host 0.0.0.0 --port 8000
-```
-
-Once the service is running, send an OpenAI-compatible request:
-
-```bash
-curl http://localhost:8000/v1/chat/completions \
-  -H 'Content-Type: application/json' \
-  -d '{"model": "SenseNova-Loop-9B", "messages": [{"role": "user", "content": "Hello!"}], "max_tokens": 128}'
-```
-
-#### SGLang
-
-Use the version from [SGLang PR #47281](https://github.com/sgl-project/sglang/pull/47281), which includes the SenseNova Loop implementation, and replace the model path:
-
-```bash
-git clone https://github.com/sgl-project/sglang.git
-cd sglang
-git fetch origin pull/47281/head
-git checkout -b sensenova-loop FETCH_HEAD
-python -m pip install -e ./python
-
-sglang serve --model-path /path/to/SenseNova-Loop-9B
-```
-
-#### vLLM
-
-Use the version from [vLLM PR #64832](https://github.com/vllm-project/vllm/pull/64832), which includes the SenseNova Loop implementation, and replace the model path:
-
-```bash
-git clone https://github.com/vllm-project/vllm.git
-cd vllm
-git fetch origin pull/64832/head
-git checkout -b sensenova-loop FETCH_HEAD
-python -m pip install -e .
-
-vllm serve /path/to/SenseNova-Loop-9B \
-  --served-model-name sensenova_loop \
-  --tensor-parallel-size 4 \
-  --dtype bfloat16
-```
-
-### Inference Acceleration
-
-SenseNova-Loop supports MTP speculative decoding. DSpark and DFlash2 draft model training instructions are available in [SenseSpec](https://github.com/OpenSenseNova/SenseSpec); available release draft weights and launch settings will be updated with the model.
-
-## 🏋️ Training
-
-For model fine-tuning, refer to the SenseNova-Loop examples in [OpenSenseNova/torchtitan](https://github.com/OpenSenseNova/torchtitan).
-
-Training scripts for DSpark and DFlash2 speculative decoding draft models are available in [OpenSenseNova/SenseSpec](https://github.com/OpenSenseNova/SenseSpec).
-
-## ⚠️ Known Limitations
-
-Given its size and development time, SenseNova-Loop-9B has room for improvement in the following areas:
-
-- **Complex instruction following:** The model may misunderstand or miss requirements when given many complex tool definitions or multiple constraints.
-- **Coding and general agent tasks:** Performance can be inconsistent on coding and general agent tasks. The model can correct some errors through additional steps, but its ability to handle complex, long-horizon tasks still needs improvement.
-- **Complex web generation:** Websites with complex 3D scenes and rich animations may not be completed in a single turn. Some examples require user feedback and two to three rounds of refinement.
-
-We will continue to improve the model and plan to apply the Loop architecture to larger models in the future. We welcome community feedback and reports of issues.
-
-## 📄 License and Citation
-
-The model project is licensed under the [Apache License 2.0](https://github.com/OpenSenseNova/SenseNova-Loop/blob/main/LICENSE).
-
----
+AtlaHu-9B 是基于商汤 SenseNova-Loop-9B 的社区衍生版本。商汤与上游贡献者保有原模型和原始代码的署名。本仓库沿用 Apache License 2.0，AtlaHu 的参数编辑、量化存储和推理实现由本项目提供。[许可证](LICENSE) · [上游中文说明](README_CN.md)
